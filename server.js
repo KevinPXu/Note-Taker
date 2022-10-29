@@ -2,7 +2,6 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const uuid = require("./helper/uuid");
-let noteStorage = require("./db/db.json");
 
 //creates a port number and set it to PORT
 const PORT = process.env.PORT || 3001;
@@ -28,7 +27,14 @@ app.get("/notes", (req, res) => {
 });
 
 app.get("/api/notes", (req, res) => {
-  res.json(noteStorage);
+  fs.readFile("./db/db.json", (err, data) => {
+    console.log(data.toString());
+    if (err) {
+      console.error(err);
+    } else {
+      res.json(JSON.parse(data));
+    }
+  });
 });
 //post request to store notes to the db.json file by rewriting the file
 app.post("/api/notes", (req, res) => {
@@ -74,7 +80,27 @@ app.post("/api/notes", (req, res) => {
   }
 });
 
-//app.delete("/api/notes", (req, res));
+app.delete("/api/notes/:id", (req, res) => {
+  const { id } = req.params;
+  let storageArr;
+  storageArr = JSON.parse(fs.readFileSync("./db/db.json").toString());
+  console.log(storageArr);
+  const deleted = storageArr.find((note) => note.id === id);
+  const newFileData = storageArr.filter((note) => note.id !== id);
+  if (deleted) {
+    fs.writeFile(
+      "./db/db.json",
+      JSON.stringify(newFileData, null, 4),
+      (writeErr) =>
+        writeErr
+          ? console.error(writeErr)
+          : console.info("Successfully deleted note")
+    );
+    res.status(200).json(deleted);
+  } else {
+    res.status(404);
+  }
+});
 
 //listens on the port given above or the one given by heroku
 app.listen(PORT, () =>
