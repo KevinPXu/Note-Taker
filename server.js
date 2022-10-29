@@ -80,12 +80,15 @@ app.post("/api/notes", (req, res) => {
   }
 });
 
+//takes the id from the URL parameter and deletes the selected note when clicking on the Delete button on the page
 app.delete("/api/notes/:id", (req, res) => {
   const { id } = req.params;
   let storageArr;
   storageArr = JSON.parse(fs.readFileSync("./db/db.json").toString());
   console.log(storageArr);
+  //checks to see if the note exists
   const deleted = storageArr.find((note) => note.id === id);
+  //filters the storage array with the ID and returns a new array without the selected note
   const newFileData = storageArr.filter((note) => note.id !== id);
   if (deleted) {
     fs.writeFile(
